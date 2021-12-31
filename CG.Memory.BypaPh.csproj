@@ -7,8 +7,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove=".gitignore" />
 		<None Remove="BypaPh\32.dll" />
 		<None Remove="BypaPh\64.dll" />
+		<None Remove="LICENSE" />
+		<None Remove="README.md" />
 	</ItemGroup>
 
 	<ItemGroup>
