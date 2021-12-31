@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<AssemblyName>BypaPh</AssemblyName>
+		<RootNamespace>CG.Memory</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Remove="BypaPh\32.dll" />
+		<None Remove="BypaPh\64.dll" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="BypaPh\64.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="BypaPh\32.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\CG.Framework\CG.Framework.csproj" />
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
+		<Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)build\Settings\Plugins\Memory\&quot; /F /Y /I" />
+	</Target>
+</Project>
