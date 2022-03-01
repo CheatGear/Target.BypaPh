@@ -5,7 +5,7 @@ using CG.Framework.Plugin.Memory;
 
 namespace CG.Memory;
 
-[PluginInfo("CorrM", "BypaPh", "Simple kernel to read/write memory of process.")]
+[PluginInfo("CorrM", "BypaPh", "Simple kernel to read/write memory of process.", "https://github.com/CheatGear", "https://github.com/CheatGear/Memory.BypaPh")]
 public class BypaPh : MemoryPlugin
 {
     [Flags]
@@ -58,9 +58,11 @@ public class BypaPh : MemoryPlugin
 
     private UIntPtr _pInstance;
 
+    public override Version TargetFrameworkVersion { get; } = new(3, 0, 0);
+    public override Version PluginVersion { get; } = new(3, 0, 0);
     public override UIntPtr ProcessHandle { get; protected set; }
     public override bool Is64Bit { get; protected set; }
-    public override bool IsSetup { get; protected set; }
+    public override bool IsInitialized { get; protected set; }
 
     public static bool Is64BitProcess(UIntPtr processHandle)
     {
@@ -71,24 +73,25 @@ public class BypaPh : MemoryPlugin
         return BypaPH_GetProcessHandle(_pInstance);
     }
 
-    public override void Setup(MemorySetupInfo info)
+    public override bool Init(MemoryInitInfo info)
     {
         if (_pInstance != UIntPtr.Zero)
         {
             BypaPH_ReTarget(_pInstance, (uint)info.Process.Id);
-            return;
+            return false;
         }
 
         _pInstance = BypaPH_ctor((uint)info.Process.Id);
         ProcessHandle = OpenProcess(ProcessAccessFlags.All, false, info.Process.Id);
         Is64Bit = Is64BitProcess(ProcessHandle);
 
-        IsSetup = true;
+        return IsInitialized = true;
     }
-    public override bool ReadBytes(UIntPtr address, int size, out ReadOnlySpan<byte> buffer, out int numberOfBytesRead)
+
+    public override bool ReadBytes(UIntPtr address, int size, out byte[] buffer, out int numberOfBytesRead)
     {
         var bytes = new byte[size];
-        buffer = ReadOnlySpan<byte>.Empty;
+        buffer = Array.Empty<byte>();
         numberOfBytesRead = 0;
 
         if (_pInstance == UIntPtr.Zero)
@@ -99,6 +102,7 @@ public class BypaPh : MemoryPlugin
         buffer = bytes;
         return ret;
     }
+
     public override bool WriteBytes(UIntPtr address, byte[] buffer, out int numberOfBytesWritten)
     {
         numberOfBytesWritten = 0;
