@@ -62,7 +62,6 @@ public class BypaPh : MemoryPlugin
     public override Version PluginVersion { get; } = new(3, 0, 0);
     public override UIntPtr ProcessHandle { get; protected set; }
     public override bool Is64Bit { get; protected set; }
-    public override bool IsInitialized { get; protected set; }
 
     public static bool Is64BitProcess(UIntPtr processHandle)
     {
@@ -73,7 +72,7 @@ public class BypaPh : MemoryPlugin
         return BypaPH_GetProcessHandle(_pInstance);
     }
 
-    public override bool Init(MemoryInitInfo info)
+    public override bool OnInit(MemoryTargetInfo info)
     {
         if (_pInstance != UIntPtr.Zero)
         {
@@ -82,7 +81,7 @@ public class BypaPh : MemoryPlugin
         }
 
         _pInstance = BypaPH_ctor((uint)info.Process.Id);
-        ProcessHandle = OpenProcess(ProcessAccessFlags.All, false, info.Process.Id);
+        ProcessHandle = (UIntPtr)info.Process.Handle.ToInt64();//OpenProcess(ProcessAccessFlags.All, false, info.Process.Id);
         Is64Bit = Is64BitProcess(ProcessHandle);
 
         return IsInitialized = true;
