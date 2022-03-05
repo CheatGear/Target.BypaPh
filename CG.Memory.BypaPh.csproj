@@ -4,6 +4,7 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<AssemblyName>BypaPh</AssemblyName>
 		<RootNamespace>CG.Memory</RootNamespace>
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
