@@ -230,8 +230,6 @@ public class BypaPh : MemoryPlugin
 
     public override void Dispose()
     {
-        GC.SuppressFinalize(this);
-
         if (_pInstance == UIntPtr.Zero)
             return;
 
