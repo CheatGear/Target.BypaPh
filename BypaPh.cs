@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using CG.Framework.Attributes;
+using CG.Framework.Helper.Platform;
 using CG.Framework.Plugin.Memory;
 
 namespace CG.Memory;
@@ -149,7 +150,7 @@ public class BypaPh : MemoryPlugin
 
         return new MemoryModuleInfo()
         {
-            Address = (UIntPtr)processModule.BaseAddress.ToInt64(),
+            Address = processModule.BaseAddress,
             Size = (uint)processModule.ModuleMemorySize,
             Name = Path.GetFileName(processModule.FileName) ?? string.Empty,
             Path = processModule.FileName ?? string.Empty
@@ -186,6 +187,7 @@ public class BypaPh : MemoryPlugin
                     } while (Win32.Module32Next(hSnap, ref modEntry));
                 }
             }
+
             Win32.CloseHandle(hSnap);
         }
         catch
@@ -226,6 +228,12 @@ public class BypaPh : MemoryPlugin
     public override bool TerminateProcess()
     {
         return Win32.NtTerminateProcess(GetProcessHandle(), 0) >= 0;
+    }
+
+    public override bool IsStaticAddress(UIntPtr address)
+    {
+        // TODO: Implement your logic
+        return false;
     }
 
     public override void Dispose()
