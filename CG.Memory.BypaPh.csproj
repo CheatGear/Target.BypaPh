@@ -1,18 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <AssemblyName>BypaPh</AssemblyName>
         <RootNamespace>CG.Memory</RootNamespace>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove=".gitignore"/>
-        <None Remove="BypaPh\32.dll"/>
-        <None Remove="BypaPh\64.dll"/>
-        <None Remove="LICENSE"/>
-        <None Remove="README.md"/>
+        <None Remove=".gitignore" />
+        <None Remove="BypaPh\32.dll" />
+        <None Remove="BypaPh\64.dll" />
+        <None Remove="LICENSE" />
+        <None Remove="README.md" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,10 +25,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\CG.Framework\CG.Framework.csproj"/>
+        <ProjectReference Include="..\CG.Framework\CG.Framework.csproj" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
-        <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)build\Settings\Plugins\Memory\&quot; /F /Y /I"/>
+        <Exec Command="xcopy &quot;$(TargetPath)&quot; &quot;$(SolutionDir)build\Settings\Plugins\Memory\&quot; /F /Y /I" />
     </Target>
 </Project>
