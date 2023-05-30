@@ -1,98 +1,99 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using CG.Framework.Attributes;
-using CG.Framework.Helper;
-using CG.Framework.Plugin.Memory;
+using CG.SDK.Dotnet.Attributes;
+using CG.SDK.Dotnet.Helper;
+using CG.SDK.Dotnet.Plugin.Target;
 
 namespace CG.Memory;
 
-[PluginInfo("CorrM", "BypaPh", "Simple kernel to read/write memory of process.", "https://github.com/CheatGear", "https://github.com/CheatGear/Memory.BypaPh")]
-public class BypaPh : MemoryPlugin
+file static class BypaPhNative
 {
-    private const string LibName = "64.dll";
+    private const string LIB_NAME = "64.dll";
 
-    [DllImport(LibName, EntryPoint = "CreateInstance")]
-    internal static extern UIntPtr BypaPH_ctor(uint pId);
+    [DllImport(LIB_NAME, EntryPoint = "CreateInstance")]
+    public static extern nuint Ctor(uint pId);
 
-    [DllImport(LibName, EntryPoint = "DeleteInstance")]
-    internal static extern void BypaPH_dtor(UIntPtr pInstance);
+    [DllImport(LIB_NAME, EntryPoint = "DeleteInstance")]
+    public static extern void Dtor(nuint pInstance);
 
-    [DllImport(LibName, EntryPoint = "ReTarget")]
-    internal static extern void BypaPH_ReTarget(UIntPtr pInstance, uint pId);
+    [DllImport(LIB_NAME, EntryPoint = "ReTarget")]
+    public static extern void ReTarget(nuint pInstance, uint pId);
 
-    [DllImport(LibName, EntryPoint = "SetRemoveAllOnExit")]
-    internal static extern void BypaPH_SetRemoveAllOnExit(UIntPtr pInstance, bool removeOnExit);
+    [DllImport(LIB_NAME, EntryPoint = "SetRemoveAllOnExit")]
+    public static extern void SetRemoveAllOnExit(nuint pInstance, bool removeOnExit);
 
-    [DllImport(LibName, EntryPoint = "GetProcessHandle")]
-    internal static extern IntPtr BypaPH_GetProcessHandle(UIntPtr pInstance);
+    [DllImport(LIB_NAME, EntryPoint = "GetProcessHandle")]
+    public static extern nint GetProcessHandle(nuint pInstance);
 
-    [DllImport(LibName, EntryPoint = "RWVM")]
-    internal static extern int BypaPH_RWVM(UIntPtr pInstance, UIntPtr baseAddress, [Out] byte[] buffer, UIntPtr bufferSize, out int numberOfBytesReadOrWritten, bool read = true, bool unsafeRequest = false);
-    
-    private UIntPtr _pInstance;
+    [DllImport(LIB_NAME, EntryPoint = "RWVM")]
+    public static extern int RWVM(nuint pInstance, nuint baseAddress, [Out] byte[] buffer, nuint bufferSize, out int numberOfBytesReadOrWritten, bool read = true, bool unsafeRequest = false);
+}
 
-    public override Version TargetFrameworkVersion { get; } = new(3, 0, 0);
-    public override Version PluginVersion { get; } = new(3, 0, 0);
+[PluginInfo(Name = nameof(BypaPh), Version = "5.0.0", Author = "CorrM", Description = "Simple kernel to read/write memory of process.", WebsiteLink = "https://github.com/CheatGear", SourceCodeLink = "https://github.com/CheatGear/Memory.BypaPh")]
+public class BypaPh : TargetHandlerPlugin<>
+{
+    private nuint _pInstance;
 
-    private IntPtr GetProcessHandle()
+    private nint GetProcessHandle()
     {
-        return BypaPH_GetProcessHandle(_pInstance);
+        return BypaPhNative.GetProcessHandle(_pInstance);
     }
 
-    protected override bool OnInit()
+    protected override void Load()
     {
         // Using CheatGear as a target it's just to init BypaPH
-        _pInstance = BypaPH_ctor((uint)Environment.ProcessId);
-
-        return _pInstance != UIntPtr.Zero;
+        _pInstance = BypaPhNative.Ctor((uint)Environment.ProcessId);
     }
 
-    protected override void OnDispose()
+    protected override void Unload()
     {
-        if (_pInstance == UIntPtr.Zero)
+        if (_pInstance == nuint.Zero)
             return;
 
-        BypaPH_SetRemoveAllOnExit(_pInstance, true);
-        BypaPH_dtor(_pInstance);
+        BypaPhNative.SetRemoveAllOnExit(_pInstance, true);
+        BypaPhNative.Dtor(_pInstance);
 
-        _pInstance = UIntPtr.Zero;
+        _pInstance = nuint.Zero;
     }
-    
+
     protected override bool OnTargetChange()
     {
+        if (CurrentTarget.Process is null)
+            throw new NullReferenceException("'CurrentTarget.Process' is null");
+
+        BypaPhNative.ReTarget(_pInstance, (uint)CurrentTarget.Process.Id);
+
         ProcessHandle = GetProcessHandle();
         if (!IsValidProcessHandle())
             return false;
-            
         Is64Bit = UtilsExtensions.Is64BitProcess(ProcessHandle);
-        BypaPH_ReTarget(_pInstance, (uint)CurrentTarget.Process.Id);
+
         return true;
     }
 
-    public override bool ReadBytes(UIntPtr address, int size, out byte[] buffer, out int numberOfBytesRead)
+    public override bool ReadBytes(nuint address, int size, out byte[] buffer, out int numberOfBytesRead)
     {
-        var bytes = new byte[size];
+        byte[]? bytes = new byte[size];
         buffer = Array.Empty<byte>();
         numberOfBytesRead = 0;
 
-        if (_pInstance == UIntPtr.Zero)
+        if (_pInstance == nuint.Zero)
             return false;
 
         // STATUS_SUCCESS
-        bool ret = BypaPH_RWVM(_pInstance, address, bytes, (UIntPtr)size, out numberOfBytesRead) == 0;
+        bool ret = BypaPhNative.RWVM(_pInstance, address, bytes, (nuint)size, out numberOfBytesRead) == 0;
         buffer = bytes;
         return ret;
     }
 
-    public override bool WriteBytes(UIntPtr address, byte[] buffer, out int numberOfBytesWritten)
+    public override bool WriteBytes(nuint address, byte[] buffer, out int numberOfBytesWritten)
     {
         numberOfBytesWritten = 0;
 
-        if (_pInstance == UIntPtr.Zero)
+        if (_pInstance == nuint.Zero)
             return false;
 
         // STATUS_SUCCESS
-        return BypaPH_RWVM(_pInstance, address, buffer, (UIntPtr)(uint)buffer.Length, out numberOfBytesWritten, false) == 0;
+        return BypaPhNative.RWVM(_pInstance, address, buffer, (nuint)(uint)buffer.Length, out numberOfBytesWritten, false) == 0;
     }
-    
 }
