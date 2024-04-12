@@ -33,10 +33,12 @@ file static class BypaPhNative
         nuint bufferSize,
         out int numberOfBytesReadOrWritten,
         bool read = true,
-        bool unsafeRequest = false);
+        bool unsafeRequest = false
+    );
 }
 
-[PluginInfo(Name = nameof(BypaPh),
+[PluginInfo(
+    Name = nameof(BypaPh),
     Version = "5.0.0",
     Author = "CorrM",
     Description = "Simple kernel to read/write memory of process.",
@@ -118,13 +120,14 @@ public class BypaPh : TargetHandlerPlugin<>
         }
 
         // STATUS_SUCCESS
-        return BypaPhNative.RWVM(_pInstance,
+        return BypaPhNative.RWVM(
+                   _pInstance,
                    address,
                    buffer,
-                   (nuint)(uint)buffer.Length,
+                   (uint)buffer.Length,
                    out numberOfBytesWritten,
                    false
-               )
-               == 0;
+               ) ==
+               0;
     }
 }
