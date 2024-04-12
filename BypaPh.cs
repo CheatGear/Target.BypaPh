@@ -26,10 +26,23 @@ file static class BypaPhNative
     public static extern nint GetProcessHandle(nuint pInstance);
 
     [DllImport(LIB_NAME, EntryPoint = "RWVM")]
-    public static extern int RWVM(nuint pInstance, nuint baseAddress, [Out] byte[] buffer, nuint bufferSize, out int numberOfBytesReadOrWritten, bool read = true, bool unsafeRequest = false);
+    public static extern int RWVM(
+        nuint pInstance,
+        nuint baseAddress,
+        [Out] byte[] buffer,
+        nuint bufferSize,
+        out int numberOfBytesReadOrWritten,
+        bool read = true,
+        bool unsafeRequest = false);
 }
 
-[PluginInfo(Name = nameof(BypaPh), Version = "5.0.0", Author = "CorrM", Description = "Simple kernel to read/write memory of process.", WebsiteLink = "https://github.com/CheatGear", SourceCodeLink = "https://github.com/CheatGear/Memory.BypaPh")]
+[PluginInfo(Name = nameof(BypaPh),
+    Version = "5.0.0",
+    Author = "CorrM",
+    Description = "Simple kernel to read/write memory of process.",
+    WebsiteLink = "https://github.com/CheatGear",
+    SourceCodeLink = "https://github.com/CheatGear/Memory.BypaPh"
+)]
 public class BypaPh : TargetHandlerPlugin<>
 {
     private nuint _pInstance;
@@ -48,7 +61,9 @@ public class BypaPh : TargetHandlerPlugin<>
     protected override void Unload()
     {
         if (_pInstance == nuint.Zero)
+        {
             return;
+        }
 
         BypaPhNative.SetRemoveAllOnExit(_pInstance, true);
         BypaPhNative.Dtor(_pInstance);
@@ -59,13 +74,18 @@ public class BypaPh : TargetHandlerPlugin<>
     protected override bool OnTargetChange()
     {
         if (CurrentTarget.Process is null)
+        {
             throw new NullReferenceException("'CurrentTarget.Process' is null");
+        }
 
         BypaPhNative.ReTarget(_pInstance, (uint)CurrentTarget.Process.Id);
 
         ProcessHandle = GetProcessHandle();
         if (!IsValidProcessHandle())
+        {
             return false;
+        }
+
         Is64Bit = UtilsExtensions.Is64BitProcess(ProcessHandle);
 
         return true;
@@ -78,7 +98,9 @@ public class BypaPh : TargetHandlerPlugin<>
         numberOfBytesRead = 0;
 
         if (_pInstance == nuint.Zero)
+        {
             return false;
+        }
 
         // STATUS_SUCCESS
         bool ret = BypaPhNative.RWVM(_pInstance, address, bytes, (nuint)size, out numberOfBytesRead) == 0;
@@ -91,9 +113,18 @@ public class BypaPh : TargetHandlerPlugin<>
         numberOfBytesWritten = 0;
 
         if (_pInstance == nuint.Zero)
+        {
             return false;
+        }
 
         // STATUS_SUCCESS
-        return BypaPhNative.RWVM(_pInstance, address, buffer, (nuint)(uint)buffer.Length, out numberOfBytesWritten, false) == 0;
+        return BypaPhNative.RWVM(_pInstance,
+                   address,
+                   buffer,
+                   (nuint)(uint)buffer.Length,
+                   out numberOfBytesWritten,
+                   false
+               )
+               == 0;
     }
 }
